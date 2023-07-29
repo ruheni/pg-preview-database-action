@@ -103,16 +103,3 @@ See the [actions tab](https://github.com/actions/typescript-action/actions) for 
 ### Usage:
 
 After testing you can [create a v1 tag](https://github.com/actions/toolkit/blob/master/docs/action-versioning.md) to reference the stable and latest V1 action
-
-
-## Flow
-
-Requirements
-- DB server
-
-On new PR
-- Create a new DB `preview-db-{branch}` with it's own set of credentials (name & password)
-- Concatenate & return the Preview DB
-
-On PR Close/ Merge
-- Delete DB with the credentials created   
