@@ -43,27 +43,39 @@ exports.deprovision = exports.provision = void 0;
 const client_1 = __nccwpck_require__(7625);
 const core = __importStar(__nccwpck_require__(2186));
 const prisma = new client_1.PrismaClient();
+const sleep = (ms) => __awaiter(void 0, void 0, void 0, function* () {
+    return new Promise(res => {
+        setTimeout(res, ms);
+    });
+});
+const series = (iterable, action) => __awaiter(void 0, void 0, void 0, function* () {
+    for (const x of iterable) {
+        yield action(x);
+    }
+});
 const provision = ({ user, password, database }) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const [, data] = yield prisma.$transaction([
-            prisma.$executeRaw `
-        CREATE USER ${user} WITH PASSWORD ${password} CREATEDB;
-        GRANT provisioned_user TO ${user};
-        CREATE DATABASE ${database};
-      `,
-            prisma.database.create({
-                data: {
-                    database,
-                    user,
-                    password
-                },
-                select: {
-                    database: true,
-                    user: true,
-                    password: true
-                }
-            })
-        ]);
+        const operations = [
+            yield prisma.$executeRawUnsafe(`CREATE DATABASE "${database}";`),
+            yield prisma.$executeRawUnsafe(`
+        CREATE USER "${user}" WITH PASSWORD '${password}' CREATEDB;
+      `),
+            yield prisma.$executeRawUnsafe(`GRANT ALL PRIVILEGES ON DATABASE "${database}" TO "${user}";`),
+            yield prisma.$executeRawUnsafe(`REVOKE ALL PRIVILEGES ON SCHEMA public FROM "${user}";`)
+        ];
+        series(operations, () => __awaiter(void 0, void 0, void 0, function* () { return sleep(10); }));
+        const data = yield prisma.database.create({
+            data: {
+                database,
+                user,
+                password
+            },
+            select: {
+                database: true,
+                user: true,
+                password: true
+            }
+        });
         return data;
     }
     catch (error) {
@@ -87,15 +99,16 @@ const deprovision = (database) => __awaiter(void 0, void 0, void 0, function* ()
         });
         if (!previewDatabase)
             throw new Error('Preview Database not found');
-        yield prisma.$transaction([
-            prisma.$executeRaw `
-        DROP DATABASE IF EXISTS ${previewDatabase.database};
-        DROP ROLE ${previewDatabase.user}
-      `,
-            prisma.database.delete({
-                where: { id: previewDatabase.id }
-            })
-        ]);
+        const operations = [
+            yield prisma.$executeRawUnsafe(`
+        DROP DATABASE IF EXISTS "${previewDatabase.database}";
+      `),
+            yield prisma.$executeRawUnsafe(`DROP ROLE "${previewDatabase.user}"`),
+        ];
+        series(operations, () => __awaiter(void 0, void 0, void 0, function* () { return sleep(10); }));
+        yield prisma.database.delete({
+            where: { id: previewDatabase.id }
+        });
         return { success: true };
     }
     catch (error) {
@@ -161,29 +174,36 @@ function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const databaseServer = core.getInput('PREVIEW_DB_SERVER');
-            core.debug(databaseServer);
             // Setup Primary Preview DB for tracking other preview databases
-            const database = new URL('/preview-databases', databaseServer).toString();
-            core.debug(database);
+            const database = new URL('/preview-databases', databaseServer);
             const $$ = (0, execa_1.$)({
                 env: {
-                    DATABASE_URL: database
+                    DATABASE_URL: database.toString()
                 }
             });
             const { exitCode } = yield $$ `prisma migrate deploy`;
             if (exitCode !== 0) {
-                core.setFailed('');
+                core.setFailed(`Failed with Exit code ${exitCode}`);
             }
             const previewDatabase = `preview-db-${(_a = github.context.payload.pull_request) === null || _a === void 0 ? void 0 : _a.number}`;
             const event = github.context.action;
             if (event === 'opened' || event === 'reopened') {
-                // provision
                 const user = (0, unique_names_generator_1.uniqueNamesGenerator)({
                     dictionaries: [unique_names_generator_1.adjectives, unique_names_generator_1.names],
                     style: 'lowerCase'
                 });
                 const password = (0, password_generator_1.default)(12, false, /([a-z|A-Z])/);
-                yield (0, db_1.provision)({ user, password, database: previewDatabase });
+                const response = yield (0, db_1.provision)({
+                    user,
+                    password,
+                    database: previewDatabase
+                });
+                if (response) {
+                    const previewDatabaseUrl = new URL(response.database, databaseServer);
+                    previewDatabaseUrl.password = response.password;
+                    previewDatabaseUrl.username = response.user;
+                    return previewDatabaseUrl;
+                }
             }
             if (event === 'closed') {
                 yield (0, db_1.deprovision)(previewDatabase);
