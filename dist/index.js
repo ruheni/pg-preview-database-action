@@ -356,6 +356,10 @@ const config = {
     "binaryTargets": [
       {
         "fromEnvVar": null,
+        "value": "debian-openssl-1.1.x"
+      },
+      {
+        "fromEnvVar": null,
         "value": "darwin-arm64",
         "native": true
       }
@@ -373,7 +377,8 @@ const config = {
     "db"
   ],
   "activeProvider": "postgresql",
-  "dataProxy": false
+  "dataProxy": false,
+  "postinstall": false
 }
 
 const fs = __nccwpck_require__(7147)
@@ -402,7 +407,10 @@ const PrismaClient = getPrismaClient(config)
 exports.PrismaClient = PrismaClient
 Object.assign(exports, Prisma)
 
-__nccwpck_require__.ab + "client/libquery_engine-darwin-arm64.dylib.node"
+__nccwpck_require__.ab + "client/libquery_engine-debian-openssl-1.1.x.so.node"
+path.join(process.cwd(), "node_modules/.prisma/client/libquery_engine-debian-openssl-1.1.x.so.node")
+
+path.join(__dirname, "libquery_engine-darwin-arm64.dylib.node");
 path.join(process.cwd(), "node_modules/.prisma/client/libquery_engine-darwin-arm64.dylib.node")
 path.join(__dirname, "schema.prisma");
 path.join(process.cwd(), "node_modules/.prisma/client/schema.prisma")
