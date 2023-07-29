@@ -1,11 +1,20 @@
-name: 'Your name here'
-description: 'Provide a description here'
-author: 'Your name or organization here'
+name: 'PostgreSQL Preview Database Provisioning Action'
+description: 'Creates a new PostgreSQL database on Pull Request creation that is persisted while the Pull Request is open'
+author: 'Alex Ruheni'
 inputs:
-  milliseconds: # change this
+  PREVIEW_DB_SERVER:
     required: true
-    description: 'input description here'
-    default: 'default value if applicable'
+    description: 'The connection string to your database server'
+  branch:
+    description: 'Branch Name'
+    required: true
+
+outputs:
+    preview_database:
+      description: ''
+      value: ${{steps.pg-preview-db.}}
+
 runs:
   using: 'node16'
   main: 'dist/index.js'
+  # if: ${{ github.event_name == 'pull_request' }}
