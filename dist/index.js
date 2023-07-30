@@ -228,38 +228,43 @@ const password_generator_1 = __importDefault(__nccwpck_require__(6436));
 const lib_1 = __nccwpck_require__(7223);
 const db_1 = __nccwpck_require__(2279);
 function run() {
-    var _a;
     return __awaiter(this, void 0, void 0, function* () {
-        try {
-            const databaseServer = core.getInput('PREVIEW_DB_SERVER');
-            yield (0, db_1.setupPrimaryDbIfNotExists)();
-            const previewDatabase = `preview-db-${(_a = github.context.payload.pull_request) === null || _a === void 0 ? void 0 : _a.number}`;
-            const event = github.context.action;
-            if (event === 'opened' || event === 'reopened') {
-                const user = (0, unique_names_generator_1.uniqueNamesGenerator)({
-                    dictionaries: [unique_names_generator_1.adjectives, unique_names_generator_1.names],
-                    style: 'lowerCase'
-                });
-                const password = (0, password_generator_1.default)(12, false, /([a-z|A-Z])/);
-                const response = yield (0, lib_1.provision)({
-                    user,
-                    password,
-                    database: previewDatabase
-                });
-                if (response) {
-                    const previewDatabaseUrl = new URL(response.database, databaseServer);
-                    previewDatabaseUrl.password = response.password;
-                    previewDatabaseUrl.username = response.user;
-                    return previewDatabaseUrl;
+        const pullRequest = github.context.payload.pull_request;
+        if (pullRequest) {
+            try {
+                const databaseServer = core.getInput('PREVIEW_DB_SERVER');
+                yield (0, db_1.setupPrimaryDbIfNotExists)();
+                const previewDatabase = `preview-db-${pullRequest.number}`;
+                const event = github.context.eventName;
+                core.debug(event);
+                core.debug(pullRequest.action);
+                if (pullRequest.action === 'opened' ||
+                    pullRequest.action === 'reopened') {
+                    const user = (0, unique_names_generator_1.uniqueNamesGenerator)({
+                        dictionaries: [unique_names_generator_1.adjectives, unique_names_generator_1.names],
+                        style: 'lowerCase'
+                    });
+                    const password = (0, password_generator_1.default)(12, false, /([a-z|A-Z])/);
+                    const response = yield (0, lib_1.provision)({
+                        user,
+                        password,
+                        database: previewDatabase
+                    });
+                    if (response) {
+                        const previewDatabaseUrl = new URL(response.database, databaseServer);
+                        previewDatabaseUrl.password = response.password;
+                        previewDatabaseUrl.username = response.user;
+                        return previewDatabaseUrl;
+                    }
+                }
+                if (pullRequest.action === 'closed') {
+                    yield (0, lib_1.deprovision)(previewDatabase);
                 }
             }
-            if (event === 'closed') {
-                yield (0, lib_1.deprovision)(previewDatabase);
-            }
-        }
-        catch (error) {
-            if (error instanceof Error) {
-                core.setFailed(error.message);
+            catch (error) {
+                if (error instanceof Error) {
+                    core.setFailed(error.message);
+                }
             }
         }
     });
