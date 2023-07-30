@@ -1,97 +1,58 @@
-import { PrismaClient } from '@prisma/client'
+import postgres from 'postgres'
 import * as core from '@actions/core'
 
-type Input = {
-  user: string
-  password: string
+export type Database = {
+  id: number
   database: string
+  password: string
+  user: string
+  createdAt: Date
 }
 
-const prisma = new PrismaClient()
+const DB_SERVER = core.getInput('PREVIEW_DB_SERVER')
 
-const sleep = async (ms: number) =>
-  new Promise(res => {
-    setTimeout(res, ms)
-  })
+const sql = postgres(DB_SERVER, {
+  database: 'preview-databases'
+})
 
-const series = async (
-  iterable: number[],
-  action: (arg: unknown) => Promise<unknown>
-) => {
-  for (const x of iterable) {
-    await action(x)
-  }
-}
+export default sql
 
-export const provision = async ({ user, password, database }: Input) => {
+export const setupPrimaryDbIfNotExists = async () => {
+  const dbServerSql = postgres(DB_SERVER)
+
   try {
-    const operations = [
-      await prisma.$executeRawUnsafe(`CREATE DATABASE "${database}";`),
-      await prisma.$executeRawUnsafe(`
-        CREATE USER "${user}" WITH PASSWORD '${password}' CREATEDB;
-      `),
-      await prisma.$executeRawUnsafe(
-        `GRANT ALL PRIVILEGES ON DATABASE "${database}" TO "${user}";`
-      ),
-      await prisma.$executeRawUnsafe(
-        `REVOKE ALL PRIVILEGES ON SCHEMA public FROM "${user}";`
-      )
-    ]
+    const previewDatabases =
+      await dbServerSql`select datname from pg_database where datname = 'preview-databases';`
 
-    series(operations, async () => sleep(10))
+    if (previewDatabases.length === 0) {
+      await dbServerSql`CREATE DATABASE "preview-databases";`
 
-    const data = await prisma.database.create({
-      data: {
-        database,
-        user,
-        password
-      },
-      select: {
-        database: true,
-        user: true,
-        password: true
+      const response = await sql`
+        CREATE TABLE IF NOT EXISTS "Database" (
+          "id" SERIAL NOT NULL,
+          "user" TEXT NOT NULL,
+          "password" TEXT NOT NULL,
+          "database" TEXT NOT NULL,
+          "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        
+          CONSTRAINT "Database_pkey" PRIMARY KEY ("id")
+        );
+        `
+      await sql.end()
+
+      if (response) {
+        await dbServerSql.end()
+        return true
       }
-    })
-    return data
-  } catch (error) {
-    if (error instanceof Error) {
-      core.setFailed(error)
     }
-  }
-}
-
-export const deprovision = async (database: string) => {
-  try {
-    const previewDatabase = await prisma.database.findFirst({
-      where: {
-        database
-      },
-      select: {
-        id: true,
-        user: true,
-        database: true
-      }
-    })
-
-    if (!previewDatabase) throw new Error('Preview Database not found')
-
-    const operations = [
-      await prisma.$executeRawUnsafe(`
-        DROP DATABASE IF EXISTS "${previewDatabase.database}";
-      `),
-      await prisma.$executeRawUnsafe(`DROP ROLE "${previewDatabase.user}"`),
-    ]
-
-    series(operations, async () => sleep(10))
-
-    await prisma.database.delete({
-      where: { id: previewDatabase.id }
-    })
-
-    return { success: true }
-  } catch (error) {
+    await dbServerSql.end()
+    return
+  } catch (error: unknown) {
     if (error instanceof Error) {
-      core.setFailed(error)
+      core.setFailed(
+        `Oops, something went wrong setting up primary DB ${error.message}`
+      )
+      await dbServerSql.end()
     }
   }
 }

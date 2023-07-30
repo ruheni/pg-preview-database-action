@@ -12,9 +12,7 @@ inputs:
 outputs:
     preview_database:
       description: ''
-      value: ${{steps.pg-preview-db.}}
 
 runs:
   using: 'node16'
   main: 'dist/index.js'
-  # if: ${{ github.event_name == 'pull_request' }}
