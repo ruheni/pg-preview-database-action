@@ -18,6 +18,7 @@ async function run(): Promise<URL | void> {
 
       const event = github.context.eventName
       core.debug(event)
+      core.debug(pullRequest.action)
 
       if (
         pullRequest.action === 'opened' ||

@@ -237,6 +237,7 @@ function run() {
                 const previewDatabase = `preview-db-${pullRequest.number}`;
                 const event = github.context.eventName;
                 core.debug(event);
+                core.debug(pullRequest.action);
                 if (pullRequest.action === 'opened' ||
                     pullRequest.action === 'reopened') {
                     const user = (0, unique_names_generator_1.uniqueNamesGenerator)({
