@@ -3,27 +3,14 @@ import * as github from '@actions/github'
 import { uniqueNamesGenerator, adjectives, names } from 'unique-names-generator'
 import generatePassword from 'password-generator'
 
-import { $ } from 'execa'
-import { deprovision, provision } from './db'
+import { deprovision, provision } from './lib'
+import { setupPrimaryDbIfNotExists } from './db'
 
 async function run(): Promise<URL | void> {
   try {
     const databaseServer = core.getInput('PREVIEW_DB_SERVER')
 
-    // Setup Primary Preview DB for tracking other preview databases
-    const database = new URL('/preview-databases', databaseServer)
-
-    const $$ = $({
-      env: {
-        DATABASE_URL: database.toString()
-      }
-    })
-
-    const { exitCode } = await $$`prisma migrate deploy`
-
-    if (exitCode !== 0) {
-      core.setFailed(`Failed with Exit code ${exitCode}`)
-    }
+    await setupPrimaryDbIfNotExists()
 
     const previewDatabase = `preview-db-${github.context.payload.pull_request?.number}`
 
