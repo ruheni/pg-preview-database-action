@@ -20,13 +20,8 @@ async function run(): Promise<URL | void> {
   // Read and parse the GitHub event payload
   const eventData = JSON.parse(fs.readFileSync(eventPath, 'utf8'))
 
-  // Extract relevant information about the pull request
+  // Extract Pull Request Action
   const pullRequestAction = eventData.action
-  const pullRequestNumber = eventData.pull_request.number
-
-  core.warning(`pullRequestAction: ${pullRequestAction}`)
-  core.warning(`pullRequestNumber: ${pullRequestNumber}`)
-  core.warning(`pullRequest: ${pullRequest}`)
 
   if (pullRequest) {
     try {
@@ -54,6 +49,7 @@ async function run(): Promise<URL | void> {
           previewDatabaseUrl.password = response.password
           previewDatabaseUrl.username = response.user
 
+          core.warning(`Preview DB URL: ${previewDatabaseUrl}`)
           return previewDatabaseUrl
         }
       }

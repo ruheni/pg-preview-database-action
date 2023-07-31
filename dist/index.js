@@ -238,12 +238,8 @@ function run() {
         }
         // Read and parse the GitHub event payload
         const eventData = JSON.parse(fs_1.default.readFileSync(eventPath, 'utf8'));
-        // Extract relevant information about the pull request
+        // Extract Pull Request Action
         const pullRequestAction = eventData.action;
-        const pullRequestNumber = eventData.pull_request.number;
-        core.warning(`pullRequestAction: ${pullRequestAction}`);
-        core.warning(`pullRequestNumber: ${pullRequestNumber}`);
-        core.warning(`pullRequest: ${pullRequest}`);
         if (pullRequest) {
             try {
                 const databaseServer = core.getInput('PREVIEW_DB_SERVER');
@@ -264,6 +260,7 @@ function run() {
                         const previewDatabaseUrl = new URL(response.database, databaseServer);
                         previewDatabaseUrl.password = response.password;
                         previewDatabaseUrl.username = response.user;
+                        core.warning(`Preview DB URL: ${previewDatabaseUrl}`);
                         return previewDatabaseUrl;
                     }
                 }
