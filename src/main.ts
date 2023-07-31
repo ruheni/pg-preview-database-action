@@ -12,7 +12,6 @@ async function run(): Promise<URL | void> {
 
   const eventPath = process.env.GITHUB_EVENT_PATH
 
-  core.warning(`eventPath: ${eventPath}`)
   if (!eventPath) {
     throw new Error('GITHUB_EVENT_PATH environment variable not set.')
   }
@@ -46,8 +45,9 @@ async function run(): Promise<URL | void> {
 
         if (response) {
           const previewDatabaseUrl = new URL(response.database, databaseServer)
-          previewDatabaseUrl.password = response.password
+          previewDatabaseUrl.protocol = 'postgresql'
           previewDatabaseUrl.username = response.user
+          previewDatabaseUrl.password = response.password
 
           core.warning(`Preview DB URL: ${previewDatabaseUrl}`)
           return previewDatabaseUrl

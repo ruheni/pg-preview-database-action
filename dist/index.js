@@ -232,7 +232,6 @@ function run() {
     return __awaiter(this, void 0, void 0, function* () {
         const pullRequest = github.context.payload.pull_request;
         const eventPath = process.env.GITHUB_EVENT_PATH;
-        core.warning(`eventPath: ${eventPath}`);
         if (!eventPath) {
             throw new Error('GITHUB_EVENT_PATH environment variable not set.');
         }
@@ -258,8 +257,9 @@ function run() {
                     });
                     if (response) {
                         const previewDatabaseUrl = new URL(response.database, databaseServer);
-                        previewDatabaseUrl.password = response.password;
+                        previewDatabaseUrl.protocol = 'postgresql';
                         previewDatabaseUrl.username = response.user;
+                        previewDatabaseUrl.password = response.password;
                         core.warning(`Preview DB URL: ${previewDatabaseUrl}`);
                         return previewDatabaseUrl;
                     }
