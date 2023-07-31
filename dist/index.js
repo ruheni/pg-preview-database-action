@@ -236,8 +236,8 @@ function run() {
                 yield (0, db_1.setupPrimaryDbIfNotExists)();
                 const previewDatabase = `preview-db-${pullRequest.number}`;
                 const event = github.context.eventName;
-                core.debug(event);
-                core.debug(pullRequest.action);
+                core.warning(event);
+                core.warning(pullRequest.action);
                 if (pullRequest.action === 'opened' ||
                     pullRequest.action === 'reopened') {
                     const user = (0, unique_names_generator_1.uniqueNamesGenerator)({
