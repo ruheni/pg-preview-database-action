@@ -235,8 +235,11 @@ function run() {
                 const databaseServer = core.getInput('PREVIEW_DB_SERVER');
                 yield (0, db_1.setupPrimaryDbIfNotExists)();
                 const previewDatabase = `preview-db-${pullRequest.number}`;
-                const event = github.context.eventName;
-                core.warning(event);
+                core.warning(github.context.eventName);
+                core.warning(github.context.action);
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-ignore
+                core.warning(github.context.payload.pull_request);
                 core.warning(pullRequest.action);
                 if (pullRequest.action === 'opened' ||
                     pullRequest.action === 'reopened') {
