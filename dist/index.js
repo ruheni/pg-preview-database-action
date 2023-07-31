@@ -225,21 +225,26 @@ const core = __importStar(__nccwpck_require__(2186));
 const github = __importStar(__nccwpck_require__(5438));
 const unique_names_generator_1 = __nccwpck_require__(4839);
 const password_generator_1 = __importDefault(__nccwpck_require__(6436));
+const fs_1 = __importDefault(__nccwpck_require__(7147));
 const lib_1 = __nccwpck_require__(7223);
 const db_1 = __nccwpck_require__(2279);
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         const pullRequest = github.context.payload.pull_request;
+        const eventPath = process.env.GITHUB_EVENT_PATH;
+        if (!eventPath) {
+            throw new Error('GITHUB_EVENT_PATH environment variable not set.');
+        }
+        // Read and parse the GitHub event payload
+        const eventData = JSON.parse(fs_1.default.readFileSync(eventPath, 'utf8'));
+        // Extract Pull Request Action
+        const pullRequestAction = eventData.action;
         if (pullRequest) {
             try {
                 const databaseServer = core.getInput('PREVIEW_DB_SERVER');
                 yield (0, db_1.setupPrimaryDbIfNotExists)();
                 const previewDatabase = `preview-db-${pullRequest.number}`;
-                const event = github.context.eventName;
-                core.debug(event);
-                core.debug(pullRequest.action);
-                if (pullRequest.action === 'opened' ||
-                    pullRequest.action === 'reopened') {
+                if (pullRequestAction === 'opened' || pullRequestAction === 'reopened') {
                     const user = (0, unique_names_generator_1.uniqueNamesGenerator)({
                         dictionaries: [unique_names_generator_1.adjectives, unique_names_generator_1.names],
                         style: 'lowerCase'
@@ -252,12 +257,14 @@ function run() {
                     });
                     if (response) {
                         const previewDatabaseUrl = new URL(response.database, databaseServer);
-                        previewDatabaseUrl.password = response.password;
+                        previewDatabaseUrl.protocol = 'postgresql';
                         previewDatabaseUrl.username = response.user;
+                        previewDatabaseUrl.password = response.password;
+                        core.warning(`Preview DB URL: ${previewDatabaseUrl}`);
                         return previewDatabaseUrl;
                     }
                 }
-                if (pullRequest.action === 'closed') {
+                if (pullRequestAction === 'closed') {
                     yield (0, lib_1.deprovision)(previewDatabase);
                 }
             }
