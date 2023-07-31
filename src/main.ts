@@ -16,13 +16,12 @@ async function run(): Promise<URL | void> {
 
       const previewDatabase = `preview-db-${pullRequest.number}`
 
-      core.warning(github.context.eventName)
-      core.warning(github.context.action)
+      core.warning(`Event Name: ${github.context.eventName}`)
+      core.warning(`Action: ${github.context.action}`)
+      core.warning(`Pull Request (Action): ${pullRequest.action}`)
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       core.warning(github.context.payload.pull_request)
-
-      core.warning(pullRequest.action)
 
       if (
         pullRequest.action === 'opened' ||
