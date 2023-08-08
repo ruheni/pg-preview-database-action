@@ -23,12 +23,10 @@ export const provision = async ({ user, password, database }: Input) => {
       database
     })} returning id, user, "database", password;`
 
-    await sql.end()
     if (data) return data[0]
   } catch (error) {
     if (error instanceof Error) {
       core.setFailed(error)
-      await sql.end()
     }
   }
 }
@@ -45,13 +43,10 @@ export const deprovision = async (database: string) => {
       `
     await sql`DROP ROLE ${sql(previewDatabase[0].user)}`
     await sql`DELETE FROM "Database" where id = ${previewDatabase[0].id} RETURNING *`
-
-    await sql.end()
     return { success: true }
   } catch (error) {
     if (error instanceof Error) {
       core.setFailed(error)
-      await sql.end()
     }
   }
 }

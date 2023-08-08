@@ -11,14 +11,23 @@ export type Database = {
 
 const DB_SERVER = core.getInput('PREVIEW_DB_SERVER')
 
+const CONNECTION_CONFIG = {
+  // Avoid zombie connections
+  idle_timeout: 20,
+  max_lifetime: 60 * 30
+}
+
 const sql = postgres(DB_SERVER, {
-  database: 'preview-databases'
+  database: 'preview-databases',
+  ...CONNECTION_CONFIG
 })
 
 export default sql
 
 export const setupPrimaryDbIfNotExists = async () => {
-  const dbServerSql = postgres(DB_SERVER)
+  const dbServerSql = postgres(DB_SERVER, {
+    ...CONNECTION_CONFIG
+  })
 
   try {
     const previewDatabases =
@@ -38,21 +47,17 @@ export const setupPrimaryDbIfNotExists = async () => {
           CONSTRAINT "Database_pkey" PRIMARY KEY ("id")
         );
         `
-      await sql.end()
 
       if (response) {
-        await dbServerSql.end()
         return true
       }
     }
-    await dbServerSql.end()
     return
   } catch (error: unknown) {
     if (error instanceof Error) {
       core.setFailed(
         `Oops, something went wrong setting up primary DB ${error.message}`
       )
-      await dbServerSql.end()
     }
   }
 }
