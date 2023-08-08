@@ -46,12 +46,15 @@ exports.setupPrimaryDbIfNotExists = void 0;
 const postgres_1 = __importDefault(__nccwpck_require__(2838));
 const core = __importStar(__nccwpck_require__(2186));
 const DB_SERVER = core.getInput('PREVIEW_DB_SERVER');
-const sql = (0, postgres_1.default)(DB_SERVER, {
-    database: 'preview-databases'
-});
+const CONNECTION_CONFIG = {
+    // Avoid zombie connections
+    idle_timeout: 20,
+    max_lifetime: 60 * 30
+};
+const sql = (0, postgres_1.default)(DB_SERVER, Object.assign({ database: 'preview-databases' }, CONNECTION_CONFIG));
 exports["default"] = sql;
 const setupPrimaryDbIfNotExists = () => __awaiter(void 0, void 0, void 0, function* () {
-    const dbServerSql = (0, postgres_1.default)(DB_SERVER);
+    const dbServerSql = (0, postgres_1.default)(DB_SERVER, Object.assign({}, CONNECTION_CONFIG));
     try {
         const previewDatabases = yield dbServerSql `select datname from pg_database where datname = 'preview-databases';`;
         if (previewDatabases.length === 0) {
@@ -67,19 +70,15 @@ const setupPrimaryDbIfNotExists = () => __awaiter(void 0, void 0, void 0, functi
           CONSTRAINT "Database_pkey" PRIMARY KEY ("id")
         );
         `;
-            yield sql.end();
             if (response) {
-                yield dbServerSql.end();
                 return true;
             }
         }
-        yield dbServerSql.end();
         return;
     }
     catch (error) {
         if (error instanceof Error) {
             core.setFailed(`Oops, something went wrong setting up primary DB ${error.message}`);
-            yield dbServerSql.end();
         }
     }
 });
@@ -143,14 +142,12 @@ const provision = ({ user, password, database }) => __awaiter(void 0, void 0, vo
             password,
             database
         })} returning id, user, "database", password;`;
-        yield db_1.default.end();
         if (data)
             return data[0];
     }
     catch (error) {
         if (error instanceof Error) {
             core.setFailed(error);
-            yield db_1.default.end();
         }
     }
 });
@@ -165,13 +162,11 @@ const deprovision = (database) => __awaiter(void 0, void 0, void 0, function* ()
       `;
         yield (0, db_1.default) `DROP ROLE ${(0, db_1.default)(previewDatabase[0].user)}`;
         yield (0, db_1.default) `DELETE FROM "Database" where id = ${previewDatabase[0].id} RETURNING *`;
-        yield db_1.default.end();
         return { success: true };
     }
     catch (error) {
         if (error instanceof Error) {
             core.setFailed(error);
-            yield db_1.default.end();
         }
     }
 });
