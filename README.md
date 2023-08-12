@@ -21,13 +21,13 @@ on:
   pull_request:
     types: [opened, reopened, closed] # set the type of events for when the action should be triggered
 
-jobs
+jobs:
   provision-preview-database: 
     runs-on: ubuntu-latest
     steps:
       
       - uses: actions/checkout@v3
-      - uses: @ruheni/pg-preview-database-action@v1
+      - uses: ruheni/pg-preview-database-action@v1
         with:
           PREVIEW_DB_SERVER: ${{ secrets.PREVIEW_DB_SERVER }}
 ```
