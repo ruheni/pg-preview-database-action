@@ -11,7 +11,7 @@ The GitHub action is run on the following pull request events:
 
 ## Prerequisites
 
-A database server with user with privileges for creating & deleting other database. Ensure you set up the database server as secret/variable on your repository — [GitHub docs](https://docs.github.com/en/actions/learn-github-actions/variables).
+A database server with a user with privileges for creating & deleting other databases. Ensure you set up the database server as a secret/variable on your repository — [GitHub docs](https://docs.github.com/en/actions/learn-github-actions/variables).
 
 ## Set up the action
 
@@ -19,7 +19,7 @@ A database server with user with privileges for creating & deleting other databa
 name: "Provision"
 on:
   pull_request:
-    types: [opened, reopened, closed] # set the type of events for when the action should be triggered
+    types: [opened, reopened, closed] # events types that will trigger the action
 
 jobs:
   provision-preview-database: 
@@ -27,20 +27,17 @@ jobs:
     steps:
       
       - uses: actions/checkout@v3
-      - uses: ruheni/pg-preview-database-action@v1
+      - uses: ruheni/pg-preview-database-action@v1.0.1
         with:
           PREVIEW_DB_SERVER: ${{ secrets.PREVIEW_DB_SERVER }}
 ```
-
-``
 
 
 ## Running locally
 
 Install the dependencies  
 ```bash
-$ npm install
-
+npm install
 ```
 
 Build the typescript and package it for distribution
