@@ -46,15 +46,18 @@ exports.setupPrimaryDbIfNotExists = void 0;
 const postgres_1 = __importDefault(__nccwpck_require__(2838));
 const core = __importStar(__nccwpck_require__(2186));
 const DB_SERVER = core.getInput('PREVIEW_DB_SERVER');
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const CONNECTION_CONFIG = {
     // Avoid zombie connections
     idle_timeout: 20,
     max_lifetime: 60 * 30
 };
-const sql = (0, postgres_1.default)(DB_SERVER, Object.assign({ database: 'preview-databases' }, CONNECTION_CONFIG));
+const sql = (0, postgres_1.default)(DB_SERVER, {
+    database: 'preview-databases'
+});
 exports["default"] = sql;
 const setupPrimaryDbIfNotExists = () => __awaiter(void 0, void 0, void 0, function* () {
-    const dbServerSql = (0, postgres_1.default)(DB_SERVER, Object.assign({}, CONNECTION_CONFIG));
+    const dbServerSql = (0, postgres_1.default)(DB_SERVER);
     try {
         const previewDatabases = yield dbServerSql `select datname from pg_database where datname = 'preview-databases';`;
         if (previewDatabases.length === 0) {
@@ -80,6 +83,10 @@ const setupPrimaryDbIfNotExists = () => __awaiter(void 0, void 0, void 0, functi
         if (error instanceof Error) {
             core.setFailed(`Oops, something went wrong setting up primary DB ${error.message}`);
         }
+    }
+    finally {
+        core.info('dbServerSql connection terminated');
+        yield dbServerSql.end();
     }
 });
 exports.setupPrimaryDbIfNotExists = setupPrimaryDbIfNotExists;
@@ -150,6 +157,10 @@ const provision = ({ user, password, database }) => __awaiter(void 0, void 0, vo
             core.setFailed(error);
         }
     }
+    finally {
+        core.info('sql connection terminated');
+        yield db_1.default.end();
+    }
 });
 exports.provision = provision;
 const deprovision = (database) => __awaiter(void 0, void 0, void 0, function* () {
@@ -168,6 +179,10 @@ const deprovision = (database) => __awaiter(void 0, void 0, void 0, function* ()
         if (error instanceof Error) {
             core.setFailed(error);
         }
+    }
+    finally {
+        core.info('sql connection terminated');
+        yield db_1.default.end();
     }
 });
 exports.deprovision = deprovision;

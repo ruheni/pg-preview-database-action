@@ -11,6 +11,7 @@ export type Database = {
 
 const DB_SERVER = core.getInput('PREVIEW_DB_SERVER')
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const CONNECTION_CONFIG = {
   // Avoid zombie connections
   idle_timeout: 20,
@@ -18,16 +19,13 @@ const CONNECTION_CONFIG = {
 }
 
 const sql = postgres(DB_SERVER, {
-  database: 'preview-databases',
-  ...CONNECTION_CONFIG
+  database: 'preview-databases'
 })
 
 export default sql
 
 export const setupPrimaryDbIfNotExists = async () => {
-  const dbServerSql = postgres(DB_SERVER, {
-    ...CONNECTION_CONFIG
-  })
+  const dbServerSql = postgres(DB_SERVER)
 
   try {
     const previewDatabases =
@@ -59,5 +57,8 @@ export const setupPrimaryDbIfNotExists = async () => {
         `Oops, something went wrong setting up primary DB ${error.message}`
       )
     }
+  } finally {
+    core.info('dbServerSql connection terminated')
+    await dbServerSql.end()
   }
 }
