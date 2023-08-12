@@ -58,7 +58,6 @@ export const setupPrimaryDbIfNotExists = async () => {
       )
     }
   } finally {
-    core.info('dbServerSql connection terminated')
     await dbServerSql.end()
   }
 }

@@ -29,7 +29,6 @@ export const provision = async ({ user, password, database }: Input) => {
       core.setFailed(error)
     }
   } finally {
-    core.info('sql connection terminated')
     await sql.end()
   }
 }
@@ -52,7 +51,6 @@ export const deprovision = async (database: string) => {
       core.setFailed(error)
     }
   } finally {
-    core.info('sql connection terminated')
     await sql.end()
   }
 }

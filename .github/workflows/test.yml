@@ -21,5 +21,6 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: ./
+        id: preview-database
         with:
-          PREVIEW_DB_SERVER: ${{ secrets.PREVIEW_DB_SERVER }}
+          PREVIEW_DB_SERVER: ${{ secrets.PREVIEW_DB_SERVER_DO }}
