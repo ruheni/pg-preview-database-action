@@ -29,4 +29,6 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Output shtuff
-      run: echo ${{ steps.preview-database.outputs.preview_database }}
+      env:
+        PREVIEW_DB: ${{ steps.preview-database.outputs.preview_database }}
+      run: echo $PREVIEW_DB
