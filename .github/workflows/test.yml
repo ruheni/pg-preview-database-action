@@ -23,7 +23,7 @@ jobs:
       - uses: ./
         id: preview-database
         with:
-          PREVIEW_DB_SERVER: ${{ secrets.PREVIEW_DB_SERVER }}
+          PREVIEW_DB_SERVER: ${{ secrets.PREVIEW_DB_SERVER_DO }}
   example_output:
     runs-on: ubuntu-latest
     steps:
