@@ -1,18 +1,19 @@
-name: 'PostgreSQL Preview Database Provisioning Action'
-description: 'Creates a new PostgreSQL database on Pull Request creation that is persisted while the Pull Request is open'
-author: 'Alex Ruheni'
+name: "PostgreSQL Preview Database Provisioning Action"
+description: "Creates a new PostgreSQL database on Pull Request creation that is persisted while the Pull Request is open"
+author: "Alex Ruheni"
 inputs:
   PREVIEW_DB_SERVER:
     required: true
-    description: 'The connection string to your database server'
+    description: "The connection string to your database server"
   branch:
-    description: 'Branch Name'
+    description: "Branch Name"
     required: true
 
 outputs:
-    preview_database:
-      description: ''
+  preview_database:
+    description: Preview database URL
+    # value: ${{ steps.database.outputs.preview_database }}
 
 runs:
-  using: 'node16'
-  main: 'dist/index.js'
+  using: "node16"
+  main: "dist/index.js"

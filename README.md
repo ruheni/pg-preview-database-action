@@ -25,11 +25,14 @@ jobs
   provision-preview-database: 
     runs-on: ubuntu-latest
     steps:
+      
       - uses: actions/checkout@v3
-      - uses: ./
+      - uses: @ruheni/pg-preview-database-action@v1
         with:
           PREVIEW_DB_SERVER: ${{ secrets.PREVIEW_DB_SERVER }}
 ```
+
+``
 
 
 ## Running locally

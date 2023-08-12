@@ -270,7 +270,6 @@ function run() {
                         previewDatabaseUrl.protocol = 'postgresql';
                         previewDatabaseUrl.username = response.user;
                         previewDatabaseUrl.password = response.password;
-                        core.warning(`Preview DB URL: ${previewDatabaseUrl}`);
                         return previewDatabaseUrl;
                     }
                 }
