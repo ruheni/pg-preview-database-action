@@ -85,7 +85,6 @@ const setupPrimaryDbIfNotExists = () => __awaiter(void 0, void 0, void 0, functi
         }
     }
     finally {
-        core.info('dbServerSql connection terminated');
         yield dbServerSql.end();
     }
 });
@@ -158,7 +157,6 @@ const provision = ({ user, password, database }) => __awaiter(void 0, void 0, vo
         }
     }
     finally {
-        core.info('sql connection terminated');
         yield db_1.default.end();
     }
 });
@@ -181,7 +179,6 @@ const deprovision = (database) => __awaiter(void 0, void 0, void 0, function* ()
         }
     }
     finally {
-        core.info('sql connection terminated');
         yield db_1.default.end();
     }
 });

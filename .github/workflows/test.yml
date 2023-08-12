@@ -24,11 +24,3 @@ jobs:
         id: preview-database
         with:
           PREVIEW_DB_SERVER: ${{ secrets.PREVIEW_DB_SERVER_DO }}
-  example_output:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v3
-    - name: Output shtuff
-      env:
-        PREVIEW_DB: ${{ steps.preview-database.outputs.preview_database }}
-      run: echo $PREVIEW_DB
